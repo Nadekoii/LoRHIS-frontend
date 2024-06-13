@@ -1,0 +1,20 @@
+@import './base.css';
+
+body {
+  display: flex;
+  place-items: center;
+  justify-content: center;
+}
+
+#app {
+  /* Grid Display */
+  min-width: 60%;
+  display: grid;
+  row-gap: 6px;
+  grid-template-columns: 50% 50%;
+
+  /* Align Center */
+  align-items: center;
+  justify-items: center;
+  font-weight: normal;
+}
