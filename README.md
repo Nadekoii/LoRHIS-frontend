@@ -1,14 +1,10 @@
-# lorhis
+# LoRHIS - LoRa for Remote Human Interface System
 
-This template should help get you started developing with Vue 3 in Vite.
+## IDE
+[IntelliJ]([https://code.visualstudio.com/](https://www.jetbrains.com/idea/))
 
-## Recommended IDE Setup
-
-[VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
-
-## Customize configuration
-
-See [Vite Configuration Reference](https://vitejs.dev/config/).
+## System Requirement
+Node.js
 
 ## Project Setup
 
