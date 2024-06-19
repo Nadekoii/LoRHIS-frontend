@@ -71,6 +71,6 @@
   }
   .refresh-button:active {
     transform: scale(0.95); /* Slightly scales down the button */
-    background-color: rgba(0, 0, 0, 0.1); /* Adds a background color on press */
+    filter: brightness(110%); /* Darkens the button */
   }
 </style>

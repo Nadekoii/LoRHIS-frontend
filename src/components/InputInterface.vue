@@ -4,12 +4,12 @@
     <h4>Enter your text</h4>
     <div class="input-container">
       <input class="message-input" placeholder="Your message..." v-model="userInput">
-      <button class="text-input-button" @click="enterInput">
+      <button class="text-input-button" @click="sendInput">
         <svg class="svg-icon" style=" width: 16px; height: 16px; vertical-align: middle; fill: var(--primary-color);overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg"><path d="M804.248575 157.915589l0 431.250908L393.361461 589.166497 393.361461 407.414013l-265.620613 227.143277 265.620613 227.01741L393.361461 679.95013l456.278931 0c25.086351 0 45.391816-20.36277 45.391816-45.39284L895.032208 157.915589 804.248575 157.915589 804.248575 157.915589zM804.248575 157.915589"  /></svg>
       </button>
     </div>
     <h4>or record your voice</h4>
-    <button class="mic-button" @click="voiceInput">
+    <button class="mic-button" :class="{ recording: isRecording }"  @click="voiceInput">
       <svg class="mic-svg" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="20" height="20" viewBox="0 0 256 256" xml:space="preserve">\
         <defs/>
         <g style="stroke: none; stroke-width: 0; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; stroke-miterlimit: 10; fill: var(--primary-color); fill-rule: nonzero; opacity: 1;" transform="translate(1.4065934065934016 1.4065934065934016) scale(2.81 2.81)" >
@@ -26,15 +26,52 @@
 <script setup>
   import{ ref } from 'vue'; //reactive data - JS variable where Vue is aware of any changes to it => like data()
 
-  const userInput = ref('');
-  const enterInput = () => {
+  /* Web Speech API*/
+  const SpeechRecognition =
+      window.SpeechRecognition || window.webkitSpeechRecognition;
+  const SpeechGrammarList =
+      window.SpeechGrammarList || window.webkitSpeechGrammarList;
+  const SpeechRecognitionEvent =
+      window.SpeechRecognitionEvent || window.webkitSpeechRecognitionEvent;
+
+  // Variables
+  const userInput = ref(''); // show the user's input
+  const isRecording = ref(false); // show if voice recognition is active
+
+  const sendInput = () => {
     // TODO smt = userInput.value;
     userInput.value = '';
   }
-  const voiceInput =() =>{
-    // TODO voice input function
-  }
 
+  /* Voice Recognition */
+  // Variables
+  const inputField = ref(document.querySelector('.message-input'));        // select the input field
+  const recognition = ref(new SpeechRecognition());                                // create a new instance of SpeechRecognition
+  recognition.value.continuous = true;                                             // keep recording until the user repress the button
+  recognition.value.interimResults = true;                                         // updating result as long as the user is speaking
+  recognition.value.lang = 'vi-VN';                                                // set the language of the recognition to Vietnamese
+
+  const voiceInput =() =>{
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {   // check if browser supports Web Speech API
+      if (!isRecording.value) {
+        isRecording.value = true;
+        recognition.value.start();
+        recognition.value.onresult = (event) => {
+          userInput.value = Array.from(event.results)
+              .map((result) => result[0])
+              .map((result) => result.transcript)
+              .join('');
+          inputField.scrollLeft = inputField.scrollWidth;
+        };
+      }
+      else {
+        isRecording.value = false;
+        recognition.value.stop(); // stop the recognition
+      }
+    } else {
+      alert('Speech recognition is not supported in your browser');
+    }
+  }
 </script>
 
 <style scoped>
@@ -87,8 +124,8 @@
     margin-left: 10px;
   }
   .text-input-button:active {
-    transform: scale(0.95); /* Slightly scales down the button */
-    background-color: rgba(0, 0, 0, 0.1); /* Adds a background color on press */
+    transform : scale(0.95);
+    filter: brightness(110%);
   }
 
   .mic-button{
@@ -98,8 +135,8 @@
     border-radius: 10px;
     background-color: var(--secondary-color);
   }
-  .mic-button:active {
-    transform: scale(0.95); /* Slightly scales down the button */
-    background-color: rgba(0, 0, 0, 0.1); /* Adds a background color on press */
+  .mic-button.recording{
+    transform : scale(0.95);
+    filter: brightness(110%);
   }
 </style>
