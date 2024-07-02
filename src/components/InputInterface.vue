@@ -24,7 +24,7 @@
 </template>
 
 <script setup>
-  import{ ref } from 'vue'; //reactive data - JS variable where Vue is aware of any changes to it => like data()
+  import{ ref,defineEmits } from 'vue'; //reactive data - JS variable where Vue is aware of any changes to it => like data()
 
   /* Web Speech API*/
   const SpeechRecognition =
@@ -38,9 +38,15 @@
   const userInput = ref(''); // show the user's input
   const isRecording = ref(false); // show if voice recognition is active
 
+  const emit = defineEmits(['sendedInput', 'recognitionStarted', 'recognitionEnded']);
+
+
   const sendInput = () => {
     // TODO smt = userInput.value;
-    userInput.value = '';
+    if(userInput.value !== ''){
+      emit('sendedInput', userInput.value);
+      userInput.value = '';
+    }
   }
 
   /* Voice Recognition */
@@ -50,6 +56,12 @@
   recognition.value.continuous = true;                                             // keep recording until the user repress the button
   recognition.value.interimResults = true;                                         // updating result as long as the user is speaking
   recognition.value.lang = 'vi-VN';                                                // set the language of the recognition to Vietnamese
+  recognition.value.onstart = () => {
+    emit('recognitionStarted');
+  };
+  recognition.value.onend = () => {
+    emit('recognitionStopped');
+  };
 
   const voiceInput =() =>{
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {   // check if browser supports Web Speech API
