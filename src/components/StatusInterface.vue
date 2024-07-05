@@ -17,6 +17,7 @@
 
 <script setup>
   import{ ref,computed,defineProps } from 'vue'; //reactive data - JS variable where Vue is aware of any changes to it => like data()
+  import axios from 'axios';
 
   // Variables
   const status = ref(true);
@@ -25,11 +26,25 @@
     eventLog: Array
   });
 
-  const refreshStatus = () => {
-    console.log(props.eventLog[0])
-    status.value = !status.value;
-    logAdd('System is ' + statusText.value + ' at ' + new Date().toLocaleTimeString());
-  }
+  // Uplink API
+  const headers = {
+    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkZXZFVUkiOiJmYjhmNTZlYzFiMzI5YTYzIiwiYXBwSUQiOiIzNyIsImVtYWlsIjoibG9uZy52dTY2MjBAZ21haWwuY29tIiwicGFzc3dvcmQiOiJMb25nMTIzQCIsImlhdCI6MTcxOTg5MjY5NH0.AtiBtwj4tfsxeVUqCJotwbHhmavw5isxCRpaM4pGDhQ'
+  };
+  const refreshStatus = async () => {
+    try {
+      const uplinkConfig = {
+        "limit": 1
+      };
+      const response = await axios.post('https://api.vngalaxy.vn/api/uplink/', uplinkConfig, {headers:headers});
+      console.log('API Response:', response.data);
+      status.value = true;
+      console.log('Updated Status:', status.value); // Log the updated status
+    } catch (error) {
+      console.error('Error fetching status:', error);
+      status.value = false; // Assume offline on error
+    }
+    logAdd('System Check:' + (status.value ? 'ONLINE' : 'OFFLINE') + ' at ' + new Date().toLocaleTimeString());
+  };
   const logAdd = (log) => {
     props.eventLog.unshift(log);
   }

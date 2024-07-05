@@ -3,7 +3,7 @@
     <h1>LORHIS</h1>
     <h4>Enter your text</h4>
     <div class="input-container">
-      <input class="message-input" placeholder="Your message..." v-model="userInput">
+      <input class="message-input" placeholder="Your message..." v-model.trim="userInput" maxlength="24">
       <button class="text-input-button" @click="sendInput">
         <svg class="svg-icon" style=" width: 16px; height: 16px; vertical-align: middle; fill: var(--primary-color);overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg"><path d="M804.248575 157.915589l0 431.250908L393.361461 589.166497 393.361461 407.414013l-265.620613 227.143277 265.620613 227.01741L393.361461 679.95013l456.278931 0c25.086351 0 45.391816-20.36277 45.391816-45.39284L895.032208 157.915589 804.248575 157.915589 804.248575 157.915589zM804.248575 157.915589"  /></svg>
       </button>
@@ -25,6 +25,7 @@
 
 <script setup>
   import{ ref,defineEmits } from 'vue'; //reactive data - JS variable where Vue is aware of any changes to it => like data()
+  import axios from 'axios';
 
   /* Web Speech API*/
   const SpeechRecognition =
@@ -40,14 +41,40 @@
 
   const emit = defineEmits(['sendedInput', 'recognitionStarted', 'recognitionEnded']);
 
-
-  const sendInput = () => {
-    // TODO smt = userInput.value;
+  /* Downlink API */
+  function base64Encode(str) {
+    return btoa(str);
+  }
+  const headers = {
+    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkZXZFVUkiOiJmYjhmNTZlYzFiMzI5YTYzIiwiYXBwSUQiOiIzNyIsImVtYWlsIjoibG9uZy52dTY2MjBAZ21haWwuY29tIiwicGFzc3dvcmQiOiJMb25nMTIzQCIsImlhdCI6MTcxOTg5MjY5NH0.AtiBtwj4tfsxeVUqCJotwbHhmavw5isxCRpaM4pGDhQ'
+  };
+  const sendInput = async () => {
     if(userInput.value !== ''){
+      // Package data and send to server with API
+      try {
+        const downlinkConfig = {
+          "deviceEUI": "fb8f56ec1b329a63",
+          "confirmed": true,
+          "data": base64Encode(userInput.value),
+          "fPort": 1
+        };
+        const response = await axios.post('http://222.255.135.133:3004/api/downlink', downlinkConfig, {headers:headers});
+        alert('Success' + response.data.message)
+      } catch (error) {         // Handle error
+        if (error.response) {   // Request was made and the server responded with a status code that falls out of the range of 2xx
+          console.log(error.response.data);  // Log error object
+          console.log(error.response.data.msg);  // Log object's message
+        } else if (error.request) { // Request was made but no response (timeout)
+          console.log(error.request);
+        } else { // Something happened in setting up the request that triggered an Error
+          console.log('Error', error.message);
+        }
+        console.log(error.config);
+      }
       emit('sendedInput', userInput.value);
       userInput.value = '';
     }
-  }
+  };
 
   /* Voice Recognition */
   // Variables
