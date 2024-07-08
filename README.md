@@ -1,10 +1,9 @@
-# LoRHIS - LoRa for Remote Human Interface System
-
+# LoRHIS - Front-end
 ## IDE
 [IntelliJ]([https://code.visualstudio.com/](https://www.jetbrains.com/idea/))
 
 ## System Requirement
-Node.js
+Vue.js
 
 ## Project Setup
 
