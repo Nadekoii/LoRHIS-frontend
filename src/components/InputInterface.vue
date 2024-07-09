@@ -42,6 +42,20 @@
   const emit = defineEmits(['sendedInput', 'recognitionStarted', 'recognitionEnded']);
 
   /* Downlink API */
+  const sendInput = async () => {
+    if(userInput.value !== ''){
+      try {
+        const response = await axios.post('http://localhost:3000/sendInput', { userInput: userInput.value });
+        alert('Success: ' + response.data.message);
+      } catch (error) {
+        console.error('Error sending input:', error);
+        alert('Error sending input');
+      }
+      emit('sendedInput', userInput.value);
+      userInput.value = ''; // Clear the input after sending
+    }
+  };
+  /* old
   function base64Encode(str) {
     return btoa(str);
   }
@@ -75,6 +89,7 @@
       userInput.value = '';
     }
   };
+   */
 
   /* Voice Recognition */
   // Variables

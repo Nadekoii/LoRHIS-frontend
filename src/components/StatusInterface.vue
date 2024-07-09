@@ -26,7 +26,24 @@
     eventLog: Array
   });
 
+  const logAdd = (log) => {
+    props.eventLog.unshift(log);
+  }
+
   // Uplink API
+  const refreshStatus = async () => {
+    try {
+      const response = await axios.post('http://localhost:3000/refreshStatus');
+      console.log('API Response:', response.data);
+      status.value = response.data.status;
+      console.log('Updated Status:', status.value); // Log the updated status
+    } catch (error) {
+      console.error('Error fetching status:', error);
+      status.value = false; // Assume offline on error
+    }
+    logAdd('System Check: ' + (status.value ? 'ONLINE' : 'OFFLINE') + ' at ' + new Date().toLocaleTimeString());
+  };
+  /* Outdated
   const headers = {
     'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkZXZFVUkiOiJmYjhmNTZlYzFiMzI5YTYzIiwiYXBwSUQiOiIzNyIsImVtYWlsIjoibG9uZy52dTY2MjBAZ21haWwuY29tIiwicGFzc3dvcmQiOiJMb25nMTIzQCIsImlhdCI6MTcxOTg5MjY5NH0.AtiBtwj4tfsxeVUqCJotwbHhmavw5isxCRpaM4pGDhQ'
   };
@@ -45,9 +62,7 @@
     }
     logAdd('System Check:' + (status.value ? 'ONLINE' : 'OFFLINE') + ' at ' + new Date().toLocaleTimeString());
   };
-  const logAdd = (log) => {
-    props.eventLog.unshift(log);
-  }
+   */
 </script>
 
 <style scoped>
