@@ -33,7 +33,7 @@
   // Uplink API
   const refreshStatus = async () => {
     try {
-      const response = await axios.post('http://localhost:3000/refreshStatus');
+      const response = await axios.post('http://localhost:3000/api/refreshStatus');
       console.log('API Response:', response.data);
       status.value = response.data.status;
       console.log('Updated Status:', status.value); // Log the updated status

@@ -45,7 +45,7 @@
   const sendInput = async () => {
     if(userInput.value !== ''){
       try {
-        const response = await axios.post('http://localhost:3000/sendInput', { userInput: userInput.value });
+        const response = await axios.post('http://localhost:3000//api/sendInput', { userInput: userInput.value });
         alert('Success: ' + response.data.message);
       } catch (error) {
         console.error('Error sending input:', error);
