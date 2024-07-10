@@ -16,18 +16,42 @@
 </template>
 
 <script setup>
-  import{ ref,computed,defineProps } from 'vue'; //reactive data - JS variable where Vue is aware of any changes to it => like data()
+  import{ ref,computed,onMounted,onUnmounted } from 'vue'; //reactive data - JS variable where Vue is aware of any changes to it => like data()
   import axios from 'axios';
 
+  // onMounted / onUnmounted
+  onMounted(() => {
+    connectToWebSocket();
+  });
+  onUnmounted(() => {
+    if (websocket) {
+      websocket.close();
+    }
+  });
+
   // Variables
-  const status = ref(true);
+  const status = ref(false);
   const statusText = computed(() => (status.value ? 'ONLINE' : 'OFFLINE'));
   const props = defineProps({
     eventLog: Array
   });
+  let websocket = null;
 
-  const logAdd = (log) => {
-    props.eventLog.unshift(log);
+  const logAdd = (log) => {props.eventLog.unshift(log);
+  }
+
+  // WebSocket for MQTT
+  const connectToWebSocket = () =>{
+    websocket = new WebSocket('ws://localhost:3001');
+    websocket.onmessage = (message) => {
+      let oldstatus = status.value;
+      const data = message.data;
+      status.value = data.size !== 0;
+      if (oldstatus !== status.value){
+        logAdd('System Check: ' + (status.value ? 'ONLINE' : 'OFFLINE') + ' at ' + new Date().toLocaleTimeString());
+      }
+      console.log('System Check: ' + (status.value ? 'ONLINE' : 'OFFLINE'));
+    };
   }
 
   // Uplink API
@@ -36,33 +60,13 @@
       const response = await axios.post('http://localhost:3000/api/refreshStatus');
       console.log('API Response:', response.data);
       status.value = response.data.status;
-      console.log('Updated Status:', status.value); // Log the updated status
+      console.log('Updated Status:', status.value);
     } catch (error) {
       console.error('Error fetching status:', error);
-      status.value = false; // Assume offline on error
+      status.value = false;
     }
-    logAdd('System Check: ' + (status.value ? 'ONLINE' : 'OFFLINE') + ' at ' + new Date().toLocaleTimeString());
+    logAdd('Uplink Check: ' + (status.value ? 'ONLINE' : 'OFFLINE') + ' at ' + new Date().toLocaleTimeString());
   };
-  /* Outdated
-  const headers = {
-    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkZXZFVUkiOiJmYjhmNTZlYzFiMzI5YTYzIiwiYXBwSUQiOiIzNyIsImVtYWlsIjoibG9uZy52dTY2MjBAZ21haWwuY29tIiwicGFzc3dvcmQiOiJMb25nMTIzQCIsImlhdCI6MTcxOTg5MjY5NH0.AtiBtwj4tfsxeVUqCJotwbHhmavw5isxCRpaM4pGDhQ'
-  };
-  const refreshStatus = async () => {
-    try {
-      const uplinkConfig = {
-        "limit": 1
-      };
-      const response = await axios.post('https://api.vngalaxy.vn/api/uplink/', uplinkConfig, {headers:headers});
-      console.log('API Response:', response.data);
-      status.value = true;
-      console.log('Updated Status:', status.value); // Log the updated status
-    } catch (error) {
-      console.error('Error fetching status:', error);
-      status.value = false; // Assume offline on error
-    }
-    logAdd('System Check:' + (status.value ? 'ONLINE' : 'OFFLINE') + ' at ' + new Date().toLocaleTimeString());
-  };
-   */
 </script>
 
 <style scoped>

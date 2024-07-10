@@ -45,7 +45,7 @@
   const sendInput = async () => {
     if(userInput.value !== ''){
       try {
-        const response = await axios.post('http://localhost:3000//api/sendInput', { userInput: userInput.value });
+        const response = await axios.post('http://localhost:3000/api/sendInput', { userInput: userInput.value });
         alert('Success: ' + response.data.message);
       } catch (error) {
         console.error('Error sending input:', error);
@@ -55,41 +55,6 @@
       userInput.value = ''; // Clear the input after sending
     }
   };
-  /* old
-  function base64Encode(str) {
-    return btoa(str);
-  }
-  const headers = {
-    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkZXZFVUkiOiJmYjhmNTZlYzFiMzI5YTYzIiwiYXBwSUQiOiIzNyIsImVtYWlsIjoibG9uZy52dTY2MjBAZ21haWwuY29tIiwicGFzc3dvcmQiOiJMb25nMTIzQCIsImlhdCI6MTcxOTg5MjY5NH0.AtiBtwj4tfsxeVUqCJotwbHhmavw5isxCRpaM4pGDhQ'
-  };
-  const sendInput = async () => {
-    if(userInput.value !== ''){
-      // Package data and send to server with API
-      try {
-        const downlinkConfig = {
-          "deviceEUI": "fb8f56ec1b329a63",
-          "confirmed": true,
-          "data": base64Encode(userInput.value),
-          "fPort": 1
-        };
-        const response = await axios.post('http://222.255.135.133:3004/api/downlink', downlinkConfig, {headers:headers});
-        alert('Success' + response.data.message)
-      } catch (error) {         // Handle error
-        if (error.response) {   // Request was made and the server responded with a status code that falls out of the range of 2xx
-          console.log(error.response.data);  // Log error object
-          console.log(error.response.data.msg);  // Log object's message
-        } else if (error.request) { // Request was made but no response (timeout)
-          console.log(error.request);
-        } else { // Something happened in setting up the request that triggered an Error
-          console.log('Error', error.message);
-        }
-        console.log(error.config);
-      }
-      emit('sendedInput', userInput.value);
-      userInput.value = '';
-    }
-  };
-   */
 
   /* Voice Recognition */
   // Variables
