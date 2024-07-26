@@ -3,7 +3,7 @@
     <h1>LORHIS</h1>
     <h4>Enter your text</h4>
     <div class="input-container">
-      <input class="message-input" placeholder="Your message..." v-model.trim="userInput" maxlength="24">
+      <input class="message-input" placeholder="Your message..." v-model.trim="userInput">
       <button class="text-input-button" @click="sendInput">
         <svg class="svg-icon" style=" width: 16px; height: 16px; vertical-align: middle; fill: var(--primary-color);overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg"><path d="M804.248575 157.915589l0 431.250908L393.361461 589.166497 393.361461 407.414013l-265.620613 227.143277 265.620613 227.01741L393.361461 679.95013l456.278931 0c25.086351 0 45.391816-20.36277 45.391816-45.39284L895.032208 157.915589 804.248575 157.915589 804.248575 157.915589zM804.248575 157.915589"  /></svg>
       </button>
@@ -43,10 +43,68 @@
 
   /* Downlink API */
   const sendInput = async () => {
-    if(userInput.value !== ''){
+    if (userInput.value !== '') {
       try {
-        const response = await axios.post('http://localhost:3000/api/sendInput', { userInput: userInput.value });
-        alert('Success: ' + response.data.message);
+        // Notify with /mStart message
+        await axios.post('http://localhost:3000/api/sendInput', {userInput: '/mStart'});
+      }catch(error){}
+      // Split the main message into multiple parts
+      const words = userInput.value.split(' ');
+      let part = '';
+      const parts = [];
+      words.forEach(word => {
+        if ((part + word).length <= 19) {
+          part += (part ? ' ' : '') + word;
+        } else {
+          parts.push(part);
+          part = word;
+        }
+      });
+      if (part) parts.push(part);
+      // For each to send each part
+      for (const part of parts) {
+        try {
+          await axios.post('http://localhost:3000/api/sendInput', {userInput: part});
+        }catch(error){}
+      }
+      // Notify end of message with "/mStop" message
+      try {
+        await axios.post('http://localhost:3000/api/sendInput', {userInput: '/mStop'});
+      }catch(error){}
+      console.log('Messages sent successfully');
+      emit('sendedInput', userInput.value);
+      userInput.value = ''; // Clear the input after sending
+    }
+  };
+
+  /*
+  const sendInput = async () => {
+    if (userInput.value !== '') {
+      try {
+        // Notify with /mStart message
+        await axios.post('http://localhost:3000/api/sendInput', { userInput: '/mStart' });
+        // Split the main message into multiple parts
+        const words = userInput.value.split(' ');
+        let part = '';
+        const parts = [];
+        words.forEach(word => {
+          if ((part + word).length <= 19) {
+            part += (part ? ' ' : '') + word;
+          } else {
+            parts.push(part);
+            part = word;
+          }
+        });
+        if (part) parts.push(part);
+
+        // For each to send each part
+        for (const part of parts) {
+          await axios.post('http://localhost:3000/api/sendInput', { userInput: part });
+        }
+
+        // Notify end of message with "/mStop" message
+        await axios.post('http://localhost:3000/api/sendInput', { userInput: '/mStop' });
+        console.log('Messages sent successfully');
       } catch (error) {
         console.error('Error sending input:', error);
         alert('Error sending input');
@@ -55,6 +113,7 @@
       userInput.value = ''; // Clear the input after sending
     }
   };
+  */
 
   /* Voice Recognition */
   // Variables

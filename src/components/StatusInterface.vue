@@ -2,9 +2,8 @@
   <div class="right-div">
     <h2>System Status</h2>
     <div class="system-status-container">
-      <div class="status-indicator" :class="{ online: status, offline: !status }"></div>
-      <h4 :class="{ 'status-text': true, online: status, offline: !status }">{{ statusText }}</h4>
-      <button class="refresh-button" @click="refreshStatus">Refresh</button>
+      <div class="status-indicator" :class="{ online: isOnline, offline: !isOnline, waiting: statusText.includes('Waiting') }"></div>
+      <h4 :class="{ 'status-text': true, online: isOnline, offline: !isOnline, waiting: statusText.includes('Waiting') }">{{ statusText }}</h4>      <button class="refresh-button" @click="refreshStatus">Refresh</button>
     </div>
     <h4>Event Log</h4>
     <div class="event-list-wrapper">
@@ -22,6 +21,7 @@
   // onMounted / onUnmounted
   onMounted(() => {
     connectToWebSocket();
+    refreshStatus();
   });
   onUnmounted(() => {
     if (websocket) {
@@ -30,8 +30,15 @@
   });
 
   // Variables
-  const status = ref(false);
-  const statusText = computed(() => (status.value ? 'ONLINE' : 'OFFLINE'));
+  const mqttStatus = ref(false);
+  const uplinkStatus = ref(false);
+  const statusText = computed(() => {
+    if (mqttStatus.value && uplinkStatus.value) return 'ONLINE';
+    if (!mqttStatus.value && !uplinkStatus.value) return 'OFFLINE';
+    if (mqttStatus.value && !uplinkStatus.value) return 'Waiting for Uplink';
+    if (!mqttStatus.value && uplinkStatus.value) return 'Waiting for MQTT';
+  });
+  const isOnline = computed(() => mqttStatus.value && uplinkStatus.value);
   const props = defineProps({
     eventLog: Array
   });
@@ -44,13 +51,14 @@
   const connectToWebSocket = () =>{
     websocket = new WebSocket('ws://localhost:3001');
     websocket.onmessage = (message) => {
-      let oldstatus = status.value;
+      let oldMqttStatus = mqttStatus.value;
+      let oldUplinkStatus = uplinkStatus.value;
       const data = message.data;
-      status.value = data.size !== 0;
-      if (oldstatus !== status.value){
-        logAdd('System Check: ' + (status.value ? 'ONLINE' : 'OFFLINE') + ' at ' + new Date().toLocaleTimeString());
+      mqttStatus.value = data.size !== 0;
+      if (oldMqttStatus !== mqttStatus.value){
+        logAdd('MQTT Check: ' + (mqttStatus.value ? 'ONLINE' : 'OFFLINE') + ' at ' + new Date().toLocaleTimeString());
       }
-      console.log('System Check: ' + (status.value ? 'ONLINE' : 'OFFLINE'));
+      console.log('MQTT Check: ' + (mqttStatus.value ? 'ONLINE' : 'OFFLINE'));
     };
   }
 
@@ -59,13 +67,13 @@
     try {
       const response = await axios.post('http://localhost:3000/api/refreshStatus');
       console.log('API Response:', response.data);
-      status.value = response.data.status;
-      console.log('Updated Status:', status.value);
+      uplinkStatus.value = response.data.status;
+      console.log('Updated Status:', uplinkStatus.value);
     } catch (error) {
       console.error('Error fetching status:', error);
-      status.value = false;
+      uplinkStatus.value = false;
     }
-    logAdd('Uplink Check: ' + (status.value ? 'ONLINE' : 'OFFLINE') + ' at ' + new Date().toLocaleTimeString());
+    logAdd('Uplink Check: ' + (uplinkStatus.value ? 'ONLINE' : 'OFFLINE') + ' at ' + new Date().toLocaleTimeString());
   };
 </script>
 
@@ -110,9 +118,17 @@
   .status-indicator.offline {
     background-color: var(--pastel-red);
   }
+  .status-indicator.waiting {
+    background-color: var(--pastel-yellow);
+  }
+
   .status-text.offline {
     color: var(--pastel-red);
   }
+  .status-text.waiting {
+    color: var(--pastel-yellow);
+  }
+
   .refresh-button{
     width: 64px;
     height: 24px;
