@@ -2,8 +2,9 @@
   <div class="right-div">
     <h2>System Status</h2>
     <div class="system-status-container">
-      <div class="status-indicator" :class="{ online: isOnline, offline: !isOnline, waiting: statusText.includes('Waiting') }"></div>
-      <h4 :class="{ 'status-text': true, online: isOnline, offline: !isOnline, waiting: statusText.includes('Waiting') }">{{ statusText }}</h4>      <button class="refresh-button" @click="refreshStatus">Refresh</button>
+      <div class="status-indicator" :class="{ online: mqttStatus, offline: !mqttStatus}"></div>
+      <h4 :class="{ 'status-text': true, online: mqttStatus, offline: !mqttStatus}">{{ statusText }}</h4>
+      <!--<button class="refresh-button" @click="refreshStatus">Refresh</button>-->
     </div>
     <h4>Event Log</h4>
     <div class="event-list-wrapper">
@@ -20,8 +21,19 @@
 
   // onMounted / onUnmounted
   onMounted(() => {
+    // Connect to WebSocket
     connectToWebSocket();
     refreshStatus();
+
+    // Event listener for Arrow keys to scroll the event list
+    document.addEventListener('keydown', (event) => {
+      const eventList = document.querySelector('.event-list');
+      if (event.key === 'ArrowUp') {
+        eventList.scrollTop -= 3;
+      } else if (event.key === 'ArrowDown') {
+        eventList.scrollTop += 3;
+      }
+    });
   });
   onUnmounted(() => {
     if (websocket) {
@@ -33,12 +45,9 @@
   const mqttStatus = ref(false);
   const uplinkStatus = ref(false);
   const statusText = computed(() => {
-    if (mqttStatus.value && uplinkStatus.value) return 'ONLINE';
-    if (!mqttStatus.value && !uplinkStatus.value) return 'OFFLINE';
-    if (mqttStatus.value && !uplinkStatus.value) return 'Waiting for Uplink';
-    if (!mqttStatus.value && uplinkStatus.value) return 'Waiting for MQTT';
+    if (mqttStatus.value) return 'ONLINE';
+    else return 'OFFLINE';
   });
-  const isOnline = computed(() => mqttStatus.value && uplinkStatus.value);
   const props = defineProps({
     eventLog: Array
   });
@@ -52,7 +61,6 @@
     websocket = new WebSocket('ws://localhost:3001');
     websocket.onmessage = (message) => {
       let oldMqttStatus = mqttStatus.value;
-      let oldUplinkStatus = uplinkStatus.value;
       const data = message.data;
       mqttStatus.value = data.size !== 0;
       if (oldMqttStatus !== mqttStatus.value){
@@ -106,11 +114,11 @@
   }
   .status-indicator {
     display: inline-block;
-    width: 16px;
-    height: 16px;
-    border: 1px solid black;
+    width: 12px;
+    height: 12px;
     border-radius: 50%;
-    margin-right: 10px;
+    margin-top: 3px;
+    margin-right: 5px;
   }
   .status-indicator.online {
     background-color: var(--primary-color);
@@ -118,15 +126,9 @@
   .status-indicator.offline {
     background-color: var(--pastel-red);
   }
-  .status-indicator.waiting {
-    background-color: var(--pastel-yellow);
-  }
 
   .status-text.offline {
     color: var(--pastel-red);
-  }
-  .status-text.waiting {
-    color: var(--pastel-yellow);
   }
 
   .refresh-button{
@@ -142,9 +144,13 @@
     transform: scale(0.95);
     filter: brightness(110%);
   }
+  .refresh-button:focus{
+    outline: none;
+    border:3px solid var(--primary-color);
+  }
+
   .event-list-wrapper {
     overflow: hidden;
-
   }
   .event-list {
     height: 125px;

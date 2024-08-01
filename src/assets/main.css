@@ -5,16 +5,15 @@ body {
   place-items: center;
   justify-content: center;
   min-width: 1000px; /* Minimum width of the window */
-  min-height: 800px; /* Minimum height of the window */
+  min-height: 725px; /* Minimum height of the window */
 }
 
 #app {
   /* Grid Display */
-  min-width: 800px;
+  min-width: 850px;
   display: grid;
   row-gap: 6px;
   grid-template-columns: 50% 50%;
-
   /* Align Center */
   align-items: center;
   justify-items: center;

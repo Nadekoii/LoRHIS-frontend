@@ -3,13 +3,13 @@
     <h1>LORHIS</h1>
     <h4>Enter your text</h4>
     <div class="input-container">
-      <input class="message-input" placeholder="Your message..." v-model.trim="userInput">
-      <button class="text-input-button" @click="sendInput">
+      <input class="message-input" placeholder="Your message..." v-model.trim="userInput" :disabled="isSending || isRecording">
+      <button class="text-input-button" @click="sendInput" :disabled="isSending || isRecording">
         <svg class="svg-icon" style=" width: 16px; height: 16px; vertical-align: middle; fill: var(--primary-color);overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg"><path d="M804.248575 157.915589l0 431.250908L393.361461 589.166497 393.361461 407.414013l-265.620613 227.143277 265.620613 227.01741L393.361461 679.95013l456.278931 0c25.086351 0 45.391816-20.36277 45.391816-45.39284L895.032208 157.915589 804.248575 157.915589 804.248575 157.915589zM804.248575 157.915589"  /></svg>
       </button>
     </div>
     <h4>or record your voice</h4>
-    <button class="mic-button" :class="{ recording: isRecording }"  @click="voiceInput">
+    <button class="mic-button" :class="{ recording: isRecording }"  @click="voiceInput" :disabled="isSending">
       <svg class="mic-svg" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="20" height="20" viewBox="0 0 256 256" xml:space="preserve">\
         <defs/>
         <g style="stroke: none; stroke-width: 0; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; stroke-miterlimit: 10; fill: var(--primary-color); fill-rule: nonzero; opacity: 1;" transform="translate(1.4065934065934016 1.4065934065934016) scale(2.81 2.81)" >
@@ -24,8 +24,37 @@
 </template>
 
 <script setup>
-  import{ ref,defineEmits } from 'vue'; //reactive data - JS variable where Vue is aware of any changes to it => like data()
+import {ref, defineEmits, onMounted, onUnmounted} from 'vue'; //reactive data - JS variable where Vue is aware of any changes to it => like data()
+  import { Buffer } from "buffer";
+
   import axios from 'axios';
+
+  onMounted(() => {
+    const inputField = document.querySelector('.message-input');
+    const textInputButton = document.querySelector('.text-input-button');
+    const micButton = document.querySelector('.mic-button');
+    const refreshButton = document.querySelector('.refresh-button');
+    const focusableElements = [textInputButton, micButton, refreshButton];
+    let currentFocusIndex = 0;
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key.length === 1 && event.key.match(/[a-zA-Z0-9]/)) {
+        inputField.focus();
+      } else if (event.key === 'ArrowLeft' && document.activeElement !== inputField) {
+        currentFocusIndex = (currentFocusIndex - 1 + focusableElements.length) % focusableElements.length;
+        focusableElements[currentFocusIndex].focus();
+      } else if (event.key === 'ArrowRight' && document.activeElement !== inputField) {
+        currentFocusIndex = (currentFocusIndex + 1) % focusableElements.length;
+        focusableElements[currentFocusIndex].focus();
+      }
+    });
+
+    inputField.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter' && !isSending.value && !isRecording.value) {
+        sendInput();
+      }
+    });
+  });
 
   /* Web Speech API*/
   const SpeechRecognition =
@@ -37,13 +66,14 @@
 
   // Variables
   const userInput = ref(''); // show the user's input
+  const isSending = ref(false); // show if the message is sending
   const isRecording = ref(false); // show if voice recognition is active
-
   const emit = defineEmits(['sendedInput', 'recognitionStarted', 'recognitionEnded']);
 
   /* Downlink API */
   const sendInput = async () => {
     if (userInput.value !== '') {
+      isSending.value = true;
       try {
         // Notify with /mStart message
         await axios.post('http://localhost:3000/api/sendInput', {userInput: '/mStart'});
@@ -53,9 +83,11 @@
       let part = '';
       const parts = [];
       words.forEach(word => {
-        if ((part + word).length <= 19) {
-          part += (part ? ' ' : '') + word;
+        const newPart = part ? part + ' ' + word : word;
+        if (Buffer.byteLength(newPart, 'utf8') <50) {
+          part = newPart;
         } else {
+          console.log("part: " + Buffer.byteLength(part, 'utf8'));
           parts.push(part);
           part = word;
         }
@@ -64,8 +96,9 @@
       // For each to send each part
       for (const part of parts) {
         try {
-          await axios.post('http://localhost:3000/api/sendInput', {userInput: part});
-        }catch(error){}
+          await axios.post('http://localhost:3000/api/sendInput', { userInput: part });
+        } catch (error) {}
+        //await new Promise(resolve => setTimeout(resolve, 30000));
       }
       // Notify end of message with "/mStop" message
       try {
@@ -75,6 +108,7 @@
       emit('sendedInput', userInput.value);
       userInput.value = ''; // Clear the input after sending
     }
+    isSending.value = false;
   };
 
   /*
@@ -88,7 +122,7 @@
         let part = '';
         const parts = [];
         words.forEach(word => {
-          if ((part + word).length <= 19) {
+          if ((part + word).length <= 48) {
             part += (part ? ' ' : '') + word;
           } else {
             parts.push(part);
@@ -162,7 +196,7 @@
     font-weight: bold;
   }
   h4{
-    font-size: 32px;
+    font-size: 26px;
   }
   .left-div{
     border-top-left-radius: 30px;
@@ -185,6 +219,7 @@
     height: 32px;
     width: 75%;
     padding-left: 10px;
+    margin: 5px;
   }
   .message-input:focus {
     outline: none;
@@ -193,6 +228,11 @@
   .message-input::placeholder{
     color: var(--tertiary-color);
   }
+  .message-input:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
   .text-input-button{
     width: 32px;
     height: 32px;
@@ -205,16 +245,33 @@
     transform : scale(0.95);
     filter: brightness(110%);
   }
+  .text-input-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  .text-input-button:focus {
+    outline: none;
+    border:3px solid var(--primary-color);
+  }
 
   .mic-button{
-    width: 48px;
+    width: 44px;
     height: 32px;
     border: 2px solid var(--primary-color);
     border-radius: 10px;
     background-color: var(--secondary-color);
+    margin: 5px;
   }
   .mic-button.recording{
     transform : scale(0.95);
     filter: brightness(110%);
+  }
+  .mic-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  .mic-button:focus{
+    outline: none;
+    border:3px solid var(--primary-color);
   }
 </style>

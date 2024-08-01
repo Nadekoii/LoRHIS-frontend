@@ -1,12 +1,14 @@
 <template>
   <input-interface @sendedInput="handleSendedInput" @recognitionStarted="handleRecognitionStarted" @recognitionStopped="handleRecognitionStopped"/>
   <status-interface :eventLog="eventLog"/>
+  <theme-button></theme-button>
 </template>
 
 <script setup>
 import InputInterface from './components/InputInterface.vue'
 import StatusInterface from './components/StatusInterface.vue'
 import { ref } from 'vue';
+import ThemeButton from "@/components/ThemeButton.vue";
 
 // Variables
 const eventLog = ref([]);
