@@ -24,61 +24,61 @@
 </template>
 
 <script setup>
-import {ref, defineEmits, onMounted, onUnmounted} from 'vue'; //reactive data - JS variable where Vue is aware of any changes to it => like data()
+  /* Libraries */
+  import {ref, defineEmits, onMounted, onUnmounted} from 'vue'; //reactive data - JS variable where Vue is aware of any changes to it => like data()
   import { Buffer } from "buffer";
-
   import axios from 'axios';
 
+  /* onMounted for event listeners (Keyboard Navigation) */
   onMounted(() => {
+    // Selectors
     const inputField = document.querySelector('.message-input');
     const textInputButton = document.querySelector('.text-input-button');
     const micButton = document.querySelector('.mic-button');
     const refreshButton = document.querySelector('.refresh-button');
     const focusableElements = [textInputButton, micButton, refreshButton];
+
     let currentFocusIndex = 0;
 
+    // Keyboard navigation
     document.addEventListener('keydown', (event) => {
-      if (event.key.length === 1 && event.key.match(/[a-zA-Z0-9]/)) {
+      if (event.key.length === 1 && event.key.match(/[a-zA-Z0-9]/)) { // if the key is a letter or a number then focus inputField
         inputField.focus();
-      } else if (event.key === 'ArrowLeft' && document.activeElement !== inputField) {
+      } else if (event.key === 'ArrowLeft' && document.activeElement !== inputField) { // if the key is ArrowLeft and the active element is not inputField then focus the previous element
         currentFocusIndex = (currentFocusIndex - 1 + focusableElements.length) % focusableElements.length;
         focusableElements[currentFocusIndex].focus();
-      } else if (event.key === 'ArrowRight' && document.activeElement !== inputField) {
+      } else if (event.key === 'ArrowRight' && document.activeElement !== inputField) { // if the key is ArrowRight and the active element is not inputField then focus the next element
         currentFocusIndex = (currentFocusIndex + 1) % focusableElements.length;
         focusableElements[currentFocusIndex].focus();
       }
     });
-
-    inputField.addEventListener('keydown', (event) => {
+    inputField.addEventListener('keydown', (event) => { // if the key is Enter and the inputField is focused then send the input
       if (event.key === 'Enter' && !isSending.value && !isRecording.value) {
         sendInput();
       }
     });
   });
 
-  /* Web Speech API*/
-  const SpeechRecognition =
-      window.SpeechRecognition || window.webkitSpeechRecognition;
-  const SpeechGrammarList =
-      window.SpeechGrammarList || window.webkitSpeechGrammarList;
-  const SpeechRecognitionEvent =
-      window.SpeechRecognitionEvent || window.webkitSpeechRecognitionEvent;
-
-  // Variables
-  const userInput = ref(''); // show the user's input
-  const isSending = ref(false); // show if the message is sending
-  const isRecording = ref(false); // show if voice recognition is active
-  const emit = defineEmits(['sendedInput', 'recognitionStarted', 'recognitionEnded']);
+  /* Variables */
+  const userInput = ref(''); // user's input
+  const isSending = ref(false); // is the message sending ?
+  const isRecording = ref(false); // is voice recognition active ?
+  const emit = defineEmits(['sendedInput', 'recognitionStarted', 'recognitionEnded']); // emit events
 
   /* Downlink API */
+  // Function to send the input to the back-end
   const sendInput = async () => {
     if (userInput.value !== '') {
-      isSending.value = true;
+
+      isSending.value = true; // Set isSending to true
+
+      // Notify back-end the start of message with "/mStart"
       try {
-        // Notify with /mStart message
         await axios.post('http://localhost:3000/api/sendInput', {userInput: '/mStart'});
-      }catch(error){}
-      // Split the main message into multiple parts
+      }catch(error){
+      }
+
+      // Algorithm to split the main message into multiple parts (Due to the bytes limit)
       const words = userInput.value.split(' ');
       let part = '';
       const parts = [];
@@ -92,23 +92,29 @@ import {ref, defineEmits, onMounted, onUnmounted} from 'vue'; //reactive data - 
           part = word;
         }
       });
-      if (part) parts.push(part);
-      // For each to send each part
+      if (part) parts.push(part); // Push the last part
+
+      // For each to send each part to the back-end
       for (const part of parts) {
         try {
           await axios.post('http://localhost:3000/api/sendInput', { userInput: part });
         } catch (error) {}
         //await new Promise(resolve => setTimeout(resolve, 30000));
       }
-      // Notify end of message with "/mStop" message
+
+      // Notify back-end the end of the message with "/mStop"
       try {
         await axios.post('http://localhost:3000/api/sendInput', {userInput: '/mStop'});
-      }catch(error){}
-      console.log('Messages sent successfully');
-      emit('sendedInput', userInput.value);
+      }catch(error){
+      }
+
+      console.log('Messages sent successfully'); // Log to console
+      emit('sendedInput', userInput.value); // Emit event
       userInput.value = ''; // Clear the input after sending
     }
-    isSending.value = false;
+
+    isSending.value = false; // Set isSending to false
+
   };
 
   /*
@@ -150,25 +156,36 @@ import {ref, defineEmits, onMounted, onUnmounted} from 'vue'; //reactive data - 
   */
 
   /* Voice Recognition */
-  // Variables
-  const inputField = ref(document.querySelector('.message-input'));        // select the input field
-  const recognition = ref(new SpeechRecognition());                                // create a new instance of SpeechRecognition
-  recognition.value.continuous = true;                                             // keep recording until the user repress the button
-  recognition.value.interimResults = true;                                         // updating result as long as the user is speaking
-  recognition.value.lang = 'vi-VN';                                                // set the language of the recognition to Vietnamese
-  recognition.value.onstart = () => {
-    emit('recognitionStarted');
-  };
-  recognition.value.onend = () => {
-    emit('recognitionStopped');
-  };
+  // Web Speech API
+  if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window){ // only if the browser supports Web Speech API
+    // WSA Constants
+    const SpeechRecognition =
+        window.SpeechRecognition || window.webkitSpeechRecognition;
+    const SpeechGrammarList =
+        window.SpeechGrammarList || window.webkitSpeechGrammarList;
+    const SpeechRecognitionEvent =
+        window.SpeechRecognitionEvent || window.webkitSpeechRecognitionEvent;
+    // Variables
+    const recognition = ref(new SpeechRecognition()); // create a new instance of SpeechRecognition
+    recognition.value.continuous = true;              // keep recording until the user repress the button
+    recognition.value.interimResults = true;          // updating result as long as the user is speaking
+    recognition.value.lang = 'vi-VN';                 // set the language of the recognition to Vietnamese
 
+    recognition.value.onstart = () => {
+      emit('recognitionStarted');               // emit event on start of recognition
+    };
+    recognition.value.onend = () => {
+      emit('recognitionStopped');               // emit event on end of recognition
+    };
+  }
+
+  // Function to start and stop the voice recognition
   const voiceInput =() =>{
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {   // check if browser supports Web Speech API
-      if (!isRecording.value) {
+      if (!isRecording.value) { // if not recording then start recording
         isRecording.value = true;
-        recognition.value.start();
-        recognition.value.onresult = (event) => {
+        recognition.value.start(); // start the recognition
+        recognition.value.onresult = (event) => { // algorithm to get the result of the recognition (can be improved)
           userInput.value = Array.from(event.results)
               .map((result) => result[0])
               .map((result) => result.transcript)
@@ -176,12 +193,12 @@ import {ref, defineEmits, onMounted, onUnmounted} from 'vue'; //reactive data - 
           inputField.scrollLeft = inputField.scrollWidth;
         };
       }
-      else {
+      else { // otherwise stop recording
         isRecording.value = false;
         recognition.value.stop(); // stop the recognition
       }
     } else {
-      alert('Speech recognition is not supported in your browser');
+      alert('Speech recognition is not supported in your browser, consider to use Google Chrome or other browsers that support Web Speech API'); // alert if the browser does not support Web Speech API
     }
   }
 </script>

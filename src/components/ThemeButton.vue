@@ -25,52 +25,72 @@
 </template>
 
 <script setup>
-  import { ref } from 'vue';
-  const isDarkTheme = ref(true);
-  const toggleTheme = () => {
-    const root = document.documentElement;
-    if (isDarkTheme.value) {
-      root.style.setProperty('--color-background', getCssVariable('--cream'));
-      root.style.setProperty('--primary-color', getCssVariable('--dark-matcha'));
-      root.style.setProperty('--secondary-color', getCssVariable('--light-matcha'));
-      root.style.setProperty('--tertiary-color', '--matcha');
-    } else {
-      root.style.setProperty('--color-background', getCssVariable('--dark-matcha'));
-      root.style.setProperty('--primary-color', getCssVariable('--cream'));
-      root.style.setProperty('--secondary-color', getCssVariable('--matcha'));
-      root.style.setProperty('--tertiary-color', getCssVariable('--light-matcha'));
-    }
-    isDarkTheme.value = !isDarkTheme.value;
-  };
+  /* Libraries */
+  import { ref,onMounted } from 'vue'
+
+  /* Variables */
+  const isDarkTheme = ref(false);
+
+  /* onMounted */
+  onMounted(() => { // Load the theme from local storage
+    const savedTheme = localStorage.getItem('theme') || 'light'; // Default is light theme
+    isDarkTheme.value = savedTheme === 'dark'; // Set isDarkTheme
+    applyTheme(savedTheme); // Apply the saved theme
+  });
 
   // Function to get the value of a CSS variable
   const getCssVariable = (variableName) => {
     const root = getComputedStyle(document.documentElement);
     return root.getPropertyValue(variableName).trim();
   };
+
+  // Function to apply theme
+  const applyTheme = (theme) => {
+    const root = document.documentElement;
+    // Set the CSS variables based on the theme
+    if (theme === 'dark') {
+      root.style.setProperty('--color-background', getCssVariable('--dark-matcha'));
+      root.style.setProperty('--primary-color', getCssVariable('--cream'));
+      root.style.setProperty('--secondary-color', getCssVariable('--matcha'));
+      root.style.setProperty('--tertiary-color', getCssVariable('--light-matcha'));
+    } else {
+      root.style.setProperty('--color-background', getCssVariable('--cream'));
+      root.style.setProperty('--primary-color', getCssVariable('--dark-matcha'));
+      root.style.setProperty('--secondary-color', getCssVariable('--light-matcha'));
+      root.style.setProperty('--tertiary-color', getCssVariable('--matcha'));
+    }
+  };
+
+  // Function to toggle theme
+  const toggleTheme = () => {
+    isDarkTheme.value = !isDarkTheme.value;
+    const theme = isDarkTheme.value ? 'dark' : 'light';
+    applyTheme(theme);
+    localStorage.setItem('theme', theme); // Save the toggled theme to local storage
+  };
 </script>
 
 <style scoped>
-.theme-button {
-  position: fixed;
-  top: 15px;
-  left: 15px;
-  width: 32px;
-  height: 32px;
-  border: 2px solid var(--primary-color);
-  border-radius: 10px;
-  background-color: var(--secondary-color);
-  margin: 5px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.theme-button:focus {
-  outline: none;
-  border: 3px solid var(--primary-color);
-}
-.theme-button:active {
-  transform: scale(0.95);
-  filter: brightness(110%);
-}
+  .theme-button {
+    position: fixed;
+    top: 15px;
+    left: 15px;
+    width: 32px;
+    height: 32px;
+    border: 2px solid var(--primary-color);
+    border-radius: 10px;
+    background-color: var(--secondary-color);
+    margin: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .theme-button:focus {
+    outline: none;
+    border: 3px solid var(--primary-color);
+  }
+  .theme-button:active {
+    transform: scale(0.95);
+    filter: brightness(110%);
+  }
 </style>

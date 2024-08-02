@@ -16,17 +16,19 @@
 </template>
 
 <script setup>
+  /* Libraries */
   import{ ref,computed,onMounted,onUnmounted } from 'vue'; //reactive data - JS variable where Vue is aware of any changes to it => like data()
   import axios from 'axios';
 
-  // onMounted / onUnmounted
+  /* Lifecycle Hooks */
+  // onMounted for connecting to WebSocket and refreshing status
   onMounted(() => {
-    // Connect to WebSocket
-    connectToWebSocket();
-    refreshStatus();
 
-    // Event listener for Arrow keys to scroll the event list
-    document.addEventListener('keydown', (event) => {
+    connectToWebSocket(); // Connect to WebSocket
+    refreshStatus(); // Refresh status
+
+    // Event listener for Keyboard Navigation
+    document.addEventListener('keydown', (event) => { // ArrowUp and ArrowDown for scrolling event list
       const eventList = document.querySelector('.event-list');
       if (event.key === 'ArrowUp') {
         eventList.scrollTop -= 3;
@@ -35,42 +37,48 @@
       }
     });
   });
+
+  //onUnmounted for closing WebSocket
   onUnmounted(() => {
     if (websocket) {
       websocket.close();
     }
   });
 
-  // Variables
-  const mqttStatus = ref(false);
-  const uplinkStatus = ref(false);
-  const statusText = computed(() => {
+  /* Variables */
+  const mqttStatus = ref(false); // MQTT Status
+  const uplinkStatus = ref(false); // Uplink Status
+  const statusText = computed(() => { // Status Text (online if mqttStatus is true, offline if mqttStatus is false)
     if (mqttStatus.value) return 'ONLINE';
     else return 'OFFLINE';
   });
   const props = defineProps({
     eventLog: Array
   });
-  let websocket = null;
+  let websocket = null; // WebSocket
 
-  const logAdd = (log) => {props.eventLog.unshift(log);
+  // Function to add log into eventLog
+  const logAdd = (log) => {
+    props.eventLog.unshift(log);
   }
 
-  // WebSocket for MQTT
+  /* MQTT WebSocket */
+  // Function to connect to WebSocket and refresh status using MQTT
   const connectToWebSocket = () =>{
-    websocket = new WebSocket('ws://localhost:3001');
-    websocket.onmessage = (message) => {
-      let oldMqttStatus = mqttStatus.value;
-      const data = message.data;
-      mqttStatus.value = data.size !== 0;
-      if (oldMqttStatus !== mqttStatus.value){
+    websocket = new WebSocket('ws://localhost:3001'); // TODO: Change to actual WebSocket URL
+    websocket.onmessage = (message) => { // On message received
+      let oldMqttStatus = mqttStatus.value; // Old MQTT Status
+      const data = message.data; // Received data
+      mqttStatus.value = data.size !== 0; // MQTT Status (true if data size is not 0, false otherwise)
+      if (oldMqttStatus !== mqttStatus.value){ // If MQTT Status changed then log it
         logAdd('MQTT Check: ' + (mqttStatus.value ? 'ONLINE' : 'OFFLINE') + ' at ' + new Date().toLocaleTimeString());
       }
       console.log('MQTT Check: ' + (mqttStatus.value ? 'ONLINE' : 'OFFLINE'));
     };
   }
 
-  // Uplink API
+  /* Uplink API */
+  // Function to refresh status using uplink API
   const refreshStatus = async () => {
     try {
       const response = await axios.post('http://localhost:3000/api/refreshStatus');
