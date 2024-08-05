@@ -63,8 +63,8 @@
   const userInput = ref(''); // user's input
   const isSending = ref(false); // is the message sending ?
   const isRecording = ref(false); // is voice recognition active ?
-  const emit = defineEmits(['sendedInput', 'recognitionStarted', 'recognitionEnded']); // emit events
-
+  const emit = defineEmits(['sendedInput', 'recognitionStarted', 'recognitionStopped']); // emit events
+  const recognition = ref(null); // SpeechRecognition instance
   /* Downlink API */
   // Function to send the input to the back-end
   const sendInput = async () => {
@@ -149,7 +149,7 @@
         console.error('Error sending input:', error);
         alert('Error sending input');
       }
-      emit('sendedInput', userInput.value);
+      emit('q 1ndedInput', userInput.value);
       userInput.value = ''; // Clear the input after sending
     }
   };
@@ -158,15 +158,11 @@
   /* Voice Recognition */
   // Web Speech API
   if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window){ // only if the browser supports Web Speech API
+    console.log('Web Speech API is supported in this browser');
     // WSA Constants
-    const SpeechRecognition =
-        window.SpeechRecognition || window.webkitSpeechRecognition;
-    const SpeechGrammarList =
-        window.SpeechGrammarList || window.webkitSpeechGrammarList;
-    const SpeechRecognitionEvent =
-        window.SpeechRecognitionEvent || window.webkitSpeechRecognitionEvent;
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     // Variables
-    const recognition = ref(new SpeechRecognition()); // create a new instance of SpeechRecognition
+    recognition.value = new SpeechRecognition(); // create a new instance of SpeechRecognition
     recognition.value.continuous = true;              // keep recording until the user repress the button
     recognition.value.interimResults = true;          // updating result as long as the user is speaking
     recognition.value.lang = 'vi-VN';                 // set the language of the recognition to Vietnamese
@@ -181,6 +177,7 @@
 
   // Function to start and stop the voice recognition
   const voiceInput =() =>{
+    const inputField = document.querySelector('.message-input');
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {   // check if browser supports Web Speech API
       if (!isRecording.value) { // if not recording then start recording
         isRecording.value = true;

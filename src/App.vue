@@ -11,16 +11,16 @@ import { ref } from 'vue';
 import ThemeButton from "@/components/ThemeButton.vue";
 
 // Variables
-const eventLog = ref([]);
+const eventLog = ref([]); 
 
 const handleSendedInput = (userInput) => {
-  logAdd('User sended: "' + userInput + '" at ' + new Date().toLocaleTimeString());
+  logAdd('User sended: "' + userInput + '" at ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }));
 };
 const handleRecognitionStarted = () => {
-  logAdd('Voice input started at '+ new Date().toLocaleTimeString());
+  logAdd('Voice input started at '+ new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }));
 };
 const handleRecognitionStopped = () => {
-  logAdd('Voice input stopped at '+ new Date().toLocaleTimeString());
+  logAdd('Voice input stopped at '+ new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }));
 };
 
 const logAdd = (log) => {
