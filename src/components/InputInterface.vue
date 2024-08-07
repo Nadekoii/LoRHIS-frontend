@@ -201,17 +201,6 @@
 </script>
 
 <style scoped>
-  h1{
-    font-size: 64px;
-    font-weight: bold;
-  }
-  h2{
-    font-size: 48px;
-    font-weight: bold;
-  }
-  h4{
-    font-size: 26px;
-  }
   .left-div{
     border-top-left-radius: 30px;
     border-bottom-left-radius: 30px;
@@ -226,66 +215,23 @@
     justify-content: center;
   }
   .message-input{
-    color: var(--primary-color);
-    background-color: var(--secondary-color);
-    border: 2px solid var(--primary-color);
-    border-radius: 8px;
     height: 32px;
     width: 75%;
     padding-left: 10px;
-    margin: 5px;
-  }
-  .message-input:focus {
-    outline: none;
-    border:3px solid var(--primary-color);
-  }
-  .message-input::placeholder{
-    color: var(--tertiary-color);
-  }
-  .message-input:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
   }
 
   .text-input-button{
     width: 32px;
     height: 32px;
-    border: 2px solid var(--primary-color);
-    border-radius: 10px;
-    background-color: var(--secondary-color);
     margin-left: 10px;
-  }
-  .text-input-button:active {
-    transform : scale(0.95);
-    filter: brightness(110%);
-  }
-  .text-input-button:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-  .text-input-button:focus {
-    outline: none;
-    border:3px solid var(--primary-color);
   }
 
   .mic-button{
     width: 44px;
     height: 32px;
-    border: 2px solid var(--primary-color);
-    border-radius: 10px;
-    background-color: var(--secondary-color);
-    margin: 5px;
   }
   .mic-button.recording{
     transform : scale(0.95);
     filter: brightness(110%);
-  }
-  .mic-button:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-  .mic-button:focus{
-    outline: none;
-    border:3px solid var(--primary-color);
   }
 </style>

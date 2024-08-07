@@ -51,6 +51,56 @@ h1, h2, h4 {
   -ms-user-select: none; /* Internet Explorer/Edge */
 }
 
+h1{
+  font-size: 64px;
+  font-weight: bold;
+}
+h2{
+  font-size: 48px;
+  font-weight: bold;
+}
+h4{
+  font-size: 24px;
+  font-weight: bold;
+}
+
 button{
   cursor: pointer;
+  border: 2px solid var(--primary-color);
+  border-radius: 10px;
+  color: var(--primary-color);
+  background-color: var(--secondary-color);
+  margin: 5px;
+  justify-content: center;
+}
+button:active {
+  transform: scale(0.95);
+  filter: brightness(110%);
+}
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+button:focus {
+  outline: none;
+  border: 3px solid var(--primary-color);
+}
+
+input{
+  color: var(--primary-color);
+  background-color: var(--secondary-color);
+  border: 2px solid var(--primary-color);
+  border-radius: 10px;
+  margin: 5px;
+}
+input:focus {
+  outline: none;
+  border:3px solid var(--primary-color);
+}
+input::placeholder{
+  color: var(--tertiary-color);
+}
+input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }

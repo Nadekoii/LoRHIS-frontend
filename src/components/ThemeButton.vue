@@ -77,20 +77,7 @@
     left: 15px;
     width: 32px;
     height: 32px;
-    border: 2px solid var(--primary-color);
-    border-radius: 10px;
-    background-color: var(--secondary-color);
-    margin: 5px;
     display: flex;
     align-items: center;
-    justify-content: center;
-  }
-  .theme-button:focus {
-    outline: none;
-    border: 3px solid var(--primary-color);
-  }
-  .theme-button:active {
-    transform: scale(0.95);
-    filter: brightness(110%);
   }
 </style>

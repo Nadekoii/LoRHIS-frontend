@@ -94,19 +94,6 @@
 </script>
 
 <style scoped>
-  h1{
-    font-size: 64px;
-    font-weight: bold;
-  }
-  h2{
-    font-size: 48px;
-    font-weight: bold;
-  }
-  h4{
-    font-size: 24px;
-    font-weight: bold;
-  }
-
   .right-div{
     flex-direction: column;
     justify-content: center;
@@ -142,19 +129,7 @@
   .refresh-button{
     width: 64px;
     height: 24px;
-    color: var(--primary-color);
-    border: 2px solid var(--primary-color);
-    border-radius: 10px;
-    background-color: var(--secondary-color);
     margin-left: 20px;
-  }
-  .refresh-button:active {
-    transform: scale(0.95);
-    filter: brightness(110%);
-  }
-  .refresh-button:focus{
-    outline: none;
-    border:3px solid var(--primary-color);
   }
 
   .event-list-wrapper {
