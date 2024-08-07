@@ -10,6 +10,7 @@ Vue.js
 ```sh
 npm install
 npm install --save-dev vue-svg-loader
+npm install buffer
 ```
 
 ### Compile and Hot-Reload for Development
