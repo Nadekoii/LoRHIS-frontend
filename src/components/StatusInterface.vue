@@ -102,6 +102,15 @@
     border-bottom-right-radius: 30px;
     border: 1px dashed var(--primary-color);
   }
+  /* Media query for mobile devices */
+  @media (max-width: 600px) {
+    .right-div {
+      border-top-right-radius: 0;
+      border-bottom-left-radius: 30px;
+      border-bottom-right-radius: 30px;
+      border: 1px dashed var(--primary-color);
+    }
+  }
   .system-status-container{
     display: flex;
     align-items: center;
@@ -121,7 +130,6 @@
   .status-indicator.offline {
     background-color: var(--pastel-red);
   }
-
   .status-text.offline {
     color: var(--pastel-red);
   }

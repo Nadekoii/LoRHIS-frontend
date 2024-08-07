@@ -3,6 +3,7 @@
 body {
   display: flex;
   place-items: center;
+  align-items: center;
   justify-content: center;
   min-width: 1000px; /* Minimum width of the window */
   min-height: 725px; /* Minimum height of the window */
@@ -18,4 +19,18 @@ body {
   align-items: center;
   justify-items: center;
   font-weight: normal;
+}
+
+/* Media query for mobile devices */
+@media (max-width: 600px) {
+  body{
+    min-width: 0;
+    min-height: 0;
+  }
+  #app {
+    min-width: 0;
+    row-gap: 0;
+    grid-template-columns: 1fr; /* Single column layout */
+    padding-top: 150px; /* Add padding to the top */
+  }
 }

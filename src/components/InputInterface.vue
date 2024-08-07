@@ -209,6 +209,19 @@
     border-bottom: 1px dashed var(--primary-color);
   }
 
+  /* Media query for mobile devices */
+  @media (max-width: 600px) {
+    .left-div {
+      border-top-left-radius: 30px;
+      border-bottom-left-radius: 0;
+      border-top-right-radius: 30px;
+      border-top: 1px dashed var(--primary-color);
+      border-left: 1px dashed var(--primary-color);
+      border-right: 1px dashed var(--primary-color);
+      border-bottom: none;
+    }
+  }
+
   .input-container {
     display: flex;
     align-items: center;
