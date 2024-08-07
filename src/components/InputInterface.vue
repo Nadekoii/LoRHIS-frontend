@@ -149,7 +149,7 @@
         console.error('Error sending input:', error);
         alert('Error sending input');
       }
-      emit('q 1ndedInput', userInput.value);
+      emit('StoppeedInput', userInput.value);
       userInput.value = ''; // Clear the input after sending
     }
   };
