@@ -4,10 +4,12 @@
     <h4>Enter your text</h4>
     <div class="input-container">
       <input class="message-input" placeholder="Your message..." v-model.trim="userInput" :disabled="isSending || isRecording">
-      <button class="text-input-button" @click="sendInput" :disabled="isSending || isRecording">
+      <button class="text-input-button" @click="sendInput" :disabled="isSending || isRecording || isByteLimitExceeded">
         <svg class="svg-icon" style=" width: 16px; height: 16px; vertical-align: middle; fill: var(--primary-color);overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg"><path d="M804.248575 157.915589l0 431.250908L393.361461 589.166497 393.361461 407.414013l-265.620613 227.143277 265.620613 227.01741L393.361461 679.95013l456.278931 0c25.086351 0 45.391816-20.36277 45.391816-45.39284L895.032208 157.915589 804.248575 157.915589 804.248575 157.915589zM804.248575 157.915589"  /></svg>
       </button>
     </div>
+    <div class="p-div">
+      <p v-show="isByteLimitExceeded" class="byte-limit-notification">Input exceeds 61 bytes limit. Current: {{ currentByteLength }} bytes.</p>    </div>
     <h4>or record your voice</h4>
     <button class="mic-button" :class="{ recording: isRecording }"  @click="voiceInput" :disabled="isSending">
       <svg class="mic-svg" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="20" height="20" viewBox="0 0 256 256" xml:space="preserve">\
@@ -25,7 +27,7 @@
 
 <script setup>
   /* Libraries */
-  import {ref, defineEmits, onMounted, onUnmounted} from 'vue'; //reactive data - JS variable where Vue is aware of any changes to it => like data()
+  import {ref, defineEmits, onMounted, computed} from 'vue'; //reactive data - JS variable where Vue is aware of any changes to it => like data()
   import { Buffer } from "buffer";
   import axios from 'axios';
 
@@ -65,95 +67,35 @@
   const isRecording = ref(false); // is voice recognition active ?
   const emit = defineEmits(['sendedInput', 'recognitionStarted', 'recognitionStopped']); // emit events
   const recognition = ref(null); // SpeechRecognition instance
+
+  /* User Input */
+  /* Helper function to calculate byte length */
+  const getByteLength = (str) => {
+    return new TextEncoder().encode(str).length;
+  };
+  /* Computed property to check if byte limit is exceeded */
+  const currentByteLength = computed(() => {
+    return getByteLength(userInput.value);
+  });
+  const isByteLimitExceeded = computed(() => {
+    return currentByteLength.value > 61;
+  });
+
   /* Downlink API */
   // Function to send the input to the back-end
   const sendInput = async () => {
-    if (userInput.value !== '') {
-
-      isSending.value = true; // Set isSending to true
-
-      // Notify back-end the start of message with "/mStart"
+    if (userInput.value !== '' && !isByteLimitExceeded.value) {
+      isSending.value = true;
       try {
-        await axios.post('http://localhost:3000/api/sendInput', {userInput: '/mStart'});
-      }catch(error){
-      }
-
-      // Algorithm to split the main message into multiple parts (Due to the bytes limit)
-      const words = userInput.value.split(' ');
-      let part = '';
-      const parts = [];
-      words.forEach(word => {
-        const newPart = part ? part + ' ' + word : word;
-        if (Buffer.byteLength(newPart, 'utf8') <50) {
-          part = newPart;
-        } else {
-          console.log("part: " + Buffer.byteLength(part, 'utf8'));
-          parts.push(part);
-          part = word;
-        }
-      });
-      if (part) parts.push(part); // Push the last part
-
-      // For each to send each part to the back-end
-      for (const part of parts) {
-        try {
-          await axios.post('http://localhost:3000/api/sendInput', { userInput: part });
-        } catch (error) {}
-        //await new Promise(resolve => setTimeout(resolve, 30000));
-      }
-
-      // Notify back-end the end of the message with "/mStop"
-      try {
-        await axios.post('http://localhost:3000/api/sendInput', {userInput: '/mStop'});
-      }catch(error){
-      }
-
-      console.log('Messages sent successfully'); // Log to console
-      emit('sendedInput', userInput.value); // Emit event
-      userInput.value = ''; // Clear the input after sending
-    }
-
-    isSending.value = false; // Set isSending to false
-
-  };
-
-  /*
-  const sendInput = async () => {
-    if (userInput.value !== '') {
-      try {
-        // Notify with /mStart message
-        await axios.post('http://localhost:3000/api/sendInput', { userInput: '/mStart' });
-        // Split the main message into multiple parts
-        const words = userInput.value.split(' ');
-        let part = '';
-        const parts = [];
-        words.forEach(word => {
-          if ((part + word).length <= 48) {
-            part += (part ? ' ' : '') + word;
-          } else {
-            parts.push(part);
-            part = word;
-          }
-        });
-        if (part) parts.push(part);
-
-        // For each to send each part
-        for (const part of parts) {
-          await axios.post('http://localhost:3000/api/sendInput', { userInput: part });
-        }
-
-        // Notify end of message with "/mStop" message
-        await axios.post('http://localhost:3000/api/sendInput', { userInput: '/mStop' });
-        console.log('Messages sent successfully');
+        await axios.post('http://localhost:3000/api/sendInput', { userInput: userInput.value });
       } catch (error) {
         console.error('Error sending input:', error);
-        alert('Error sending input');
       }
-      emit('StoppeedInput', userInput.value);
-      userInput.value = ''; // Clear the input after sending
+      emit('sendedInput', userInput.value);
+      userInput.value = '';
+      isSending.value = false;
     }
   };
-  */
 
   /* Voice Recognition */
   // Web Speech API
@@ -237,6 +179,16 @@
     width: 32px;
     height: 32px;
     margin-left: 10px;
+  }
+
+  .p-div{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 20px;
+  }
+  .byte-limit-notification {
+    color: var(--pastel-red);
   }
 
   .mic-button{

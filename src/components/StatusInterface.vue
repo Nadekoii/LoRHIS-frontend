@@ -71,7 +71,7 @@
       const data = message.data; // Received data
       mqttStatus.value = data.size !== 0; // MQTT Status (true if data size is not 0, false otherwise)
       if (oldMqttStatus !== mqttStatus.value){ // If MQTT Status changed then log it
-        logAdd('MQTT Check: ' + (mqttStatus.value ? 'ONLINE' : 'OFFLINE') + ' at ' + Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }));
+        logAdd('MQTT Check: ' + (mqttStatus.value ? 'ONLINE' : 'OFFLINE') + ' at ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }));
       }
       console.log('MQTT Check: ' + (mqttStatus.value ? 'ONLINE' : 'OFFLINE'));
     };
