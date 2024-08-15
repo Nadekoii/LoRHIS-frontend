@@ -10,7 +10,7 @@ COPY package*.json ./
 # Install dependencies
 RUN npm install
 RUN npm install --save-dev vue-svg-loader
-RUN npm install buffer
+RUN npm install axios
 
 # Copy the rest of the application code
 COPY . .

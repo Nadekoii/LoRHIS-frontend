@@ -28,7 +28,6 @@
 <script setup>
   /* Libraries */
   import {ref, defineEmits, onMounted, computed} from 'vue'; //reactive data - JS variable where Vue is aware of any changes to it => like data()
-  import { Buffer } from "buffer";
   import axios from 'axios';
 
   /* onMounted for event listeners (Keyboard Navigation) */
