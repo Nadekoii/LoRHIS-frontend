@@ -33,3 +33,7 @@ npm install axios                       # Install the axios package
 ```sh
 npm run dev
 ```
+
+## Known bug
+### Downlink API
+The Downlink API will always reply with Error 400 even with a Success, that's why the code will catch every error and ignore them. Fix the try-catch algorithm when the Downlink API is fixed on the server.
