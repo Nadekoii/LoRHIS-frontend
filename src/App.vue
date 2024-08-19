@@ -14,7 +14,7 @@ import ThemeButton from "@/components/ThemeButton.vue";
 const eventLog = ref([]); 
 
 const handleSendedInput = (userInput) => {
-  logAdd('User sended: "' + userInput + '" at ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }));
+  logAdd('User queued following message: "' + userInput + '" at ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }));
 };
 const handleRecognitionStarted = () => {
   logAdd('Voice input started at '+ new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }));

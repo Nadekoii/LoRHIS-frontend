@@ -25,7 +25,6 @@
   onMounted(() => {
 
     connectToWebSocket(); // Connect to WebSocket
-    refreshStatus(); // Refresh status
 
     // Event listener for Keyboard Navigation
     document.addEventListener('keydown', (event) => { // ArrowUp and ArrowDown for scrolling event list
@@ -66,6 +65,8 @@
   // Function to connect to WebSocket and refresh status using MQTT
   const connectToWebSocket = () =>{
     websocket = new WebSocket('ws://localhost:3001'); // TODO: Change to actual WebSocket URL
+    logAdd('WebSocket Connected at ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }));
+    logAdd('Waiting for MQTT Status...');
     websocket.onmessage = (message) => { // On message received
       let oldMqttStatus = mqttStatus.value; // Old MQTT Status
       const data = message.data; // Received data
@@ -79,6 +80,7 @@
 
   /* Uplink API */
   // Function to refresh status using uplink API
+  // Replaced by MQTT, if needed then rework the function's logic to compare response data with actual time and update status accordingly
   const refreshStatus = async () => {
     try {
       const response = await axios.post('http://localhost:3000/api/refreshStatus');

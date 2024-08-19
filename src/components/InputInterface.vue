@@ -36,8 +36,8 @@
     const inputField = document.querySelector('.message-input');
     const textInputButton = document.querySelector('.text-input-button');
     const micButton = document.querySelector('.mic-button');
-    const refreshButton = document.querySelector('.refresh-button');
-    const focusableElements = [textInputButton, micButton, refreshButton];
+    const lightButton = document.querySelector('.theme-button');
+    const focusableElements = [textInputButton, micButton, lightButton];
 
     let currentFocusIndex = 0;
 
@@ -76,6 +76,7 @@
   const currentByteLength = computed(() => {
     return getByteLength(userInput.value);
   });
+  //TODO 61 is the current limit of the LoRaWAN payload, to be changed when the limit is changed
   const isByteLimitExceeded = computed(() => {
     return currentByteLength.value > 61;
   });
